@@ -511,7 +511,11 @@ public class AdapterService extends Service {
         mAdapterStateMachine =  AdapterState.make(this);
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
         mVendorSocket = new VendorSocket(this);
-        initNative(isGuest(), isNiapMode());
+
+        // Android TV doesn't show consent dialogs for just works and encryption only le pairing
+        boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_LEANBACK_ONLY);
+        initNative(isGuest(), isNiapMode(), isAtvDevice);
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
@@ -2232,7 +2236,8 @@ public class AdapterService extends Service {
     }
 
     boolean setScanMode(int mode, int duration) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH PRIVILEGED permission");
 
         setDiscoverableTimeout(duration);
 
@@ -2247,7 +2252,8 @@ public class AdapterService extends Service {
     }
 
     boolean setDiscoverableTimeout(int timeout) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH PRIVILEGED permission");
 
         return mAdapterProperties.setDiscoverableTimeout(timeout);
     }
@@ -3648,7 +3654,8 @@ public class AdapterService extends Service {
 
     static native void classInitNative();
 
-    native boolean initNative(boolean startRestricted, boolean isNiapMode);
+    native boolean initNative(boolean startRestricted, boolean isNiapMode,
+            boolean isAtvDevice);
 
     native void cleanupNative();
 
